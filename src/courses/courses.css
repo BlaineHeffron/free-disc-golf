@@ -1,0 +1,17 @@
+.course-finder { display: flex; flex-direction: column; gap: 12px; }
+.cf-status { margin: 0; opacity: 0.8; }
+.cf-error { color: #d32f2f; opacity: 1; }
+.cf-here { border: 2px solid var(--accent); border-radius: 12px; padding: 12px 16px; }
+.cf-here h2 { margin: 0 0 4px; font-size: 1.25rem; }
+.cf-here p { margin: 0 0 12px; opacity: 0.8; }
+.cf-here button { width: 100%; font-size: 1.1rem; padding: 12px; }
+.cf-search, .cf-custom input { font: inherit; padding: 10px; border-radius: 8px; border: 1px solid #888; background: transparent; color: inherit; min-width: 0; }
+.cf-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.cf-list button { width: 100%; display: flex; justify-content: space-between; gap: 8px; text-align: left; background: transparent; color: inherit; }
+.cf-name { font-weight: 600; overflow-wrap: anywhere; }
+.cf-meta { opacity: 0.7; white-space: nowrap; }
+.cf-empty { opacity: 0.7; }
+.cf-custom { display: grid; grid-template-columns: 1fr 5em; gap: 8px; }
+.cf-custom h3, .cf-custom button { grid-column: 1 / -1; margin: 0; }
+.cf-attribution { font-size: 0.8rem; opacity: 0.7; }
+.cf-attribution a { color: inherit; }

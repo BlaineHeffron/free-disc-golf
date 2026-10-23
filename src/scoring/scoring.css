@@ -1,0 +1,29 @@
+.scoring { display: flex; flex-direction: column; gap: 12px; --line: color-mix(in srgb, currentColor 20%, transparent); }
+.scoring .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.scoring header strong { flex: 1; text-align: center; }
+.scoring input { flex: 1; font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid #888; background: transparent; color: inherit; }
+.scoring .wide { width: 100%; padding: 14px; }
+.scoring button:disabled { opacity: 0.4; }
+.scoring ul, .scoring ol { list-style: none; padding: 0; margin: 0; }
+.scoring .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.scoring .names li, .scoring .history li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.scoring .history li { flex-direction: column; align-items: flex-start; }
+.hole-head { display: flex; justify-content: space-between; align-items: center; }
+.hole-head h2 { margin: 0; }
+.stepper { display: flex; align-items: center; gap: 8px; }
+.players li { display: grid; grid-template-columns: 1fr 64px 48px 64px; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.players .who { display: flex; flex-direction: column; font-size: 1.1rem; }
+.players .who small { opacity: 0.7; font-size: 0.85rem; }
+.players .big { height: 64px; font-size: 2rem; padding: 0; }
+.players output { text-align: center; font-size: 1.8rem; font-weight: 600; }
+.scoring .nav { position: sticky; bottom: 0; padding: 12px 0; background: Canvas; }
+.scoring .nav button { flex: 1; padding: 16px; font-size: 1.1rem; }
+.card-wrap { overflow-x: auto; }
+.card { width: 100%; border-collapse: collapse; text-align: center; }
+.card th, .card td { padding: 6px; border-bottom: 1px solid var(--line); }
+.card tbody tr { cursor: pointer; }
+.card .under { color: #2e7d32; font-weight: 700; }
+.card .over { color: #c62828; }
+@media (prefers-color-scheme: dark) { .card .under { color: #81c784; } .card .over { color: #ef9a9a; } }
+.board li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 1.2rem; }
+.board small { opacity: 0.7; }
