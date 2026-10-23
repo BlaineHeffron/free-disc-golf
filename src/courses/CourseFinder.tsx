@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { Course, LatLng } from '../types';
 import { formatDistance, haversine, recognize } from './geo';
 import { fetchCourses } from './overpass';
+import { LayoutError, readLayoutFile } from './layout';
 import './courses.css';
 
 const CACHE_KEY = 'dg.courses.osm';
 const CUSTOM_KEY = 'dg.courses.custom';
+const LAYOUT_KEY = 'dg.courses.layouts';
 
 function load(key: string): Course[] {
   try {
@@ -27,12 +29,14 @@ type Status = 'locating' | 'loading' | 'ready' | 'denied' | 'error';
 export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void }) {
   const [osm, setOsm] = useState(() => load(CACHE_KEY));
   const [custom, setCustom] = useState(() => load(CUSTOM_KEY));
+  const [layouts, setLayouts] = useState(() => load(LAYOUT_KEY));
   const [pos, setPos] = useState<LatLng | null>(null);
   const [status, setStatus] = useState<Status>('locating');
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [newName, setNewName] = useState('');
   const [newHoles, setNewHoles] = useState(18);
+  const [importError, setImportError] = useState('');
 
   useEffect(() => {
     let live = true;
@@ -68,7 +72,7 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
     };
   }, []);
 
-  const all = useMemo(() => [...custom, ...osm], [custom, osm]);
+  const all = useMemo(() => [...layouts, ...custom, ...osm], [layouts, custom, osm]);
   const here = pos ? recognize(osm, pos) : null;
   const list = all
     .filter((c) => c !== here?.course && c.name.toLowerCase().includes(query.trim().toLowerCase()))
@@ -89,6 +93,19 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
     setCustom(next);
     save(CUSTOM_KEY, next);
     onSelect(course);
+  }
+
+  async function importLayout(file: File | undefined) {
+    if (!file) return;
+    try {
+      const course = await readLayoutFile(file);
+      const next = [course, ...layouts.filter((c) => c.id !== course.id)];
+      setLayouts(next);
+      save(LAYOUT_KEY, next);
+      setImportError('');
+    } catch (e: unknown) {
+      setImportError(e instanceof LayoutError ? e.message : 'Could not read that layout file');
+    }
   }
 
   return (
@@ -131,6 +148,7 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
                 {course.holes.length} holes
                 {meters !== null && course.source === 'osm' ? ` · ${formatDistance(meters)}` : ''}
                 {course.source === 'custom' ? ' · custom' : ''}
+                {course.source === 'layout' ? ' · saved layout' : ''}
               </span>
             </button>
           </li>
@@ -151,6 +169,24 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
         />
         <button type="submit">Create &amp; start</button>
       </form>
+
+      <div className="cf-import">
+        <label htmlFor="cf-layout-file">Import course layout (.json)</label>
+        <input
+          id="cf-layout-file"
+          type="file"
+          accept="application/json,.json"
+          onChange={(e) => {
+            void importLayout(e.target.files?.[0]);
+            e.target.value = '';
+          }}
+        />
+        {importError && (
+          <p className="cf-error" role="alert">
+            {importError}
+          </p>
+        )}
+      </div>
 
       <p className="cf-attribution">
         Course data ©{' '}

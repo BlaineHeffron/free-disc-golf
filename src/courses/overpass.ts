@@ -23,7 +23,7 @@ nwr["leisure"="disc_golf_course"](around:${Math.round(radiusMeters)},${lat},${ln
 foreach.courses->.c(
   .c out center tags;
   .c map_to_area->.a;
-  (way(area.a)["golf"="hole"];node(area.a)["disc_golf"~"^(tee|basket)$"];);
+  (way(area.a)["disc_golf"="hole"];way(area.a)["golf"="hole"];node(area.a)["disc_golf"~"^(tee|basket)$"];);
   out geom;
 );`;
 }

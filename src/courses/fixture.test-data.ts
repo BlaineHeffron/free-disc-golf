@@ -19,7 +19,7 @@ export const overpassFixture: { elements: OsmElement[] } & Record<string, unknow
         { lat: 45.5004, lon: -122.6 },
         { lat: 45.5009, lon: -122.6 },
       ],
-      tags: { golf: 'hole', ref: '2', par: '4' },
+      tags: { disc_golf: 'hole', ref: '2', par: '4' },
     },
     {
       type: 'way',

@@ -13,5 +13,7 @@
 .cf-empty { opacity: 0.7; }
 .cf-custom { display: grid; grid-template-columns: 1fr 5em; gap: 8px; }
 .cf-custom h3, .cf-custom button { grid-column: 1 / -1; margin: 0; }
+.cf-import { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.cf-import input { font: inherit; }
 .cf-attribution { font-size: 0.8rem; opacity: 0.7; }
 .cf-attribution a { color: inherit; }

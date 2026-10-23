@@ -18,7 +18,7 @@ export interface Course {
   name: string;
   location: LatLng; // course centroid
   holes: Hole[]; // may be generated defaults (par 3) when OSM has no hole data
-  source: 'osm' | 'custom';
+  source: 'osm' | 'custom' | 'layout';
 }
 
 export interface Player {
