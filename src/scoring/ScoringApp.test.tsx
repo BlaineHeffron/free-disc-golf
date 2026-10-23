@@ -69,4 +69,33 @@ describe('ScoringApp', () => {
     expect(screen.getByText('Hole 2')).toBeInTheDocument();
     expect(screen.getByText('E (3) thru 1')).toBeInTheDocument();
   });
+
+  it('clears a stroke with the visible control and shows stats after finished rounds', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.UTC(2026, 5, 1));
+    const play = (hole1: string[], hole2: string[]) => {
+      render(<ScoringApp course={course} onExit={() => {}} />);
+      addPlayer('Ann');
+      fireEvent.click(screen.getByText(/Start round/));
+      hole1.forEach((b) => fireEvent.click(screen.getByLabelText(b === 'Clear' ? 'Clear Ann' : `Ann ${b}`)));
+      fireEvent.click(screen.getByText('Next ›'));
+      hole2.forEach((b) => fireEvent.click(screen.getByLabelText(`Ann ${b}`)));
+      fireEvent.click(screen.getByText('Finish'));
+    };
+    play(['plus', 'Clear', 'plus', 'minus'], ['plus']); // 3, cleared (next tap starts at par again), then 2, 4 → -1
+    cleanup();
+    vi.setSystemTime(Date.UTC(2026, 5, 2));
+    play(['plus'], ['plus', 'plus']); // 3, 5 → +1
+    vi.useRealTimers();
+
+    fireEvent.click(screen.getByText('Stats'));
+    const tile = (label: string) => screen.getByText(label).nextElementSibling;
+    expect(tile('Rounds')).toHaveTextContent('2');
+    expect(tile('Avg / 18 holes')).toHaveTextContent('E');
+    expect(tile('Best round')).toHaveTextContent('6 (-1)');
+    expect(tile('Birdie or better')).toHaveTextContent('25%');
+    fireEvent.click(screen.getByText('Test Park'));
+    const rows = screen.getAllByRole('row').map((r) => r.textContent);
+    expect(rows.slice(1)).toEqual(['132.5-0.5', '244.5+0.5']);
+  });
 });

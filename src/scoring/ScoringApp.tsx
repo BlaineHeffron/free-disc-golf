@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { Course, Round } from '../types';
 import { createRound, finishRound, formatToPar, leaderboard, playerStats, setPar, setStroke } from './rounds';
-import { findUnfinished, listRounds, recentPlayers, rememberPlayers, saveRound } from './storage';
+import { findUnfinished, listRounds, recentPlayers, saveRound } from './storage';
+import { Stats } from './Stats';
 import './scoring.css';
 
-type View = 'setup' | 'hole' | 'card' | 'done' | 'history';
+type View = 'setup' | 'hole' | 'card' | 'done' | 'history' | 'stats';
 
 export function ScoringApp({ course, onExit }: { course: Course; onExit: () => void }) {
   const [view, setView] = useState<View>('setup');
@@ -22,18 +23,19 @@ export function ScoringApp({ course, onExit }: { course: Course; onExit: () => v
   };
 
   if (view === 'history') return <History onBack={() => setView(round ? 'done' : 'setup')} />;
+  if (view === 'stats') return <Stats onBack={() => setView(round ? 'done' : 'setup')} />;
   if (!round || view === 'setup')
     return (
       <Setup
         course={course}
         onStart={(names) => {
-          rememberPlayers(names);
           const r = createRound(course, names);
           update(r);
           open(r);
         }}
         onResume={open}
         onHistory={() => setView('history')}
+        onStats={() => setView('stats')}
         onExit={onExit}
       />
     );
@@ -46,6 +48,7 @@ export function ScoringApp({ course, onExit }: { course: Course; onExit: () => v
         <Scorecard round={round} />
         <div className="row">
           <button onClick={() => setView('history')}>History</button>
+          <button onClick={() => setView('stats')}>Stats</button>
           <button className="primary" onClick={onExit}>Done</button>
         </div>
       </section>
@@ -82,11 +85,12 @@ export function ScoringApp({ course, onExit }: { course: Course; onExit: () => v
                   <div className="who">
                     <span>{p.name}</span>
                     <small>{st.thru ? `${formatToPar(st.toPar)} (${st.total}) thru ${st.thru}` : '—'}</small>
+                    {s !== null && (
+                      <button className="link" aria-label={`Clear ${p.name}`} onClick={() => update(setStroke(round, p.id, hole, null))}>clear</button>
+                    )}
                   </div>
                   <button className="big" aria-label={`${p.name} minus`} onClick={() => bump(-1)}>−</button>
-                  <output aria-label={`${p.name} strokes`} onDoubleClick={() => update(setStroke(round, p.id, hole, null))}>
-                    {s ?? '·'}
-                  </output>
+                  <output aria-label={`${p.name} strokes`}>{s ?? '·'}</output>
                   <button className="big" aria-label={`${p.name} plus`} onClick={() => bump(1)}>+</button>
                 </li>
               );
@@ -111,6 +115,7 @@ function Setup(props: {
   onStart: (names: string[]) => void;
   onResume: (r: Round) => void;
   onHistory: () => void;
+  onStats: () => void;
   onExit: () => void;
 }) {
   const [names, setNames] = useState<string[]>([]);
@@ -128,7 +133,10 @@ function Setup(props: {
       <header className="row">
         <button onClick={props.onExit} aria-label="Back to courses">‹</button>
         <strong>{props.course.name}</strong>
-        <button onClick={props.onHistory}>History</button>
+        <span className="row">
+          <button onClick={props.onStats}>Stats</button>
+          <button onClick={props.onHistory}>History</button>
+        </span>
       </header>
       {unfinished && (
         <button className="primary wide" onClick={() => props.onResume(unfinished)}>

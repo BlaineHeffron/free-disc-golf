@@ -1,17 +1,20 @@
 import type { Course, Player, Round } from '../types';
 
-export const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+// Times are whole seconds and ids are derived from them so rounds survive the compact storage codec unchanged.
+const nowSeconds = () => Math.floor(Date.now() / 1000);
+const isoAt = (s: number) => new Date(s * 1000).toISOString();
 
 export function createRound(course: Course, names: string[]): Round {
-  const players: Player[] = names.map((name) => ({ id: newId(), name }));
+  const players: Player[] = names.map((name, i) => ({ id: String(i), name }));
+  const start = nowSeconds();
   return {
-    id: newId(),
+    id: start.toString(36),
     courseId: course.id,
     courseName: course.name,
     holes: course.holes.map((h) => ({ ...h })),
     players,
     scores: Object.fromEntries(players.map((p) => [p.id, course.holes.map(() => null)])),
-    startedAt: new Date().toISOString(),
+    startedAt: isoAt(start),
   };
 }
 
@@ -48,6 +51,6 @@ export function leaderboard(round: Round): Stats[] {
   return round.players.map((p) => playerStats(round, p)).sort((a, b) => a.toPar - b.toPar || b.thru - a.thru);
 }
 
-export const finishRound = (round: Round): Round => ({ ...round, finishedAt: new Date().toISOString() });
+export const finishRound = (round: Round): Round => ({ ...round, finishedAt: isoAt(nowSeconds()) });
 
 export const formatToPar = (n: number) => (n === 0 ? 'E' : n > 0 ? `+${n}` : `${n}`);
