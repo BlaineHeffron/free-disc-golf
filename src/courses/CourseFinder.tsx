@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { Course, LatLng } from '../types';
 import { formatDistance, haversine, recognize } from './geo';
-import { fetchCourses } from './overpass';
+import { decodeCourse, osmUrl, type CourseRow } from './osm';
 import { LayoutError, readLayoutFile } from './layout';
 import './courses.css';
 
-const CACHE_KEY = 'dg.courses.osm';
+const NEARBY_METERS = 50000;
+const LIST_LIMIT = 50;
 const CUSTOM_KEY = 'dg.courses.custom';
 const LAYOUT_KEY = 'dg.courses.layouts';
 
@@ -24,15 +25,15 @@ function save(key: string, courses: Course[]) {
   }
 }
 
-type Status = 'locating' | 'loading' | 'ready' | 'denied' | 'error';
+type Status = 'locating' | 'ready' | 'denied';
 
 export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void }) {
-  const [osm, setOsm] = useState(() => load(CACHE_KEY));
+  const [osm, setOsm] = useState<Course[] | null>(null);
+  const [dataError, setDataError] = useState(false);
   const [custom, setCustom] = useState(() => load(CUSTOM_KEY));
   const [layouts, setLayouts] = useState(() => load(LAYOUT_KEY));
   const [pos, setPos] = useState<LatLng | null>(null);
   const [status, setStatus] = useState<Status>('locating');
-  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [newName, setNewName] = useState('');
   const [newHoles, setNewHoles] = useState(18);
@@ -40,6 +41,13 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
 
   useEffect(() => {
     let live = true;
+    // Bundled OpenStreetMap dataset (public/courses.json); the service worker keeps it for offline use.
+    fetch('/courses.json')
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then(
+        (data: { courses: CourseRow[] }) => live && setOsm(data.courses.map(decodeCourse)),
+        () => live && setDataError(true),
+      );
     if (!navigator.geolocation) {
       setStatus('denied');
       return;
@@ -47,22 +55,8 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         if (!live) return;
-        const here = { lat: coords.latitude, lng: coords.longitude };
-        setPos(here);
-        setStatus('loading');
-        fetchCourses(here).then(
-          (found) => {
-            if (!live) return;
-            setOsm(found);
-            save(CACHE_KEY, found);
-            setStatus('ready');
-          },
-          (e: unknown) => {
-            if (!live) return;
-            setError(e instanceof Error && e.name !== 'TimeoutError' ? e.message : 'Course lookup timed out');
-            setStatus('error');
-          },
-        );
+        setPos({ lat: coords.latitude, lng: coords.longitude });
+        setStatus('ready');
       },
       () => live && setStatus('denied'),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
@@ -72,12 +66,16 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
     };
   }, []);
 
-  const all = useMemo(() => [...layouts, ...custom, ...osm], [layouts, custom, osm]);
-  const here = pos ? recognize(osm, pos) : null;
+  const all = useMemo(() => [...layouts, ...custom, ...(osm ?? [])], [layouts, custom, osm]);
+  const here = pos && osm ? recognize(osm, pos) : null;
+  const q = query.trim().toLowerCase();
+  // Saved courses always; dataset courses nearby, or anywhere when searching by name.
   const list = all
-    .filter((c) => c !== here?.course && c.name.toLowerCase().includes(query.trim().toLowerCase()))
+    .filter((c) => c !== here?.course && c.name.toLowerCase().includes(q))
     .map((course) => ({ course, meters: pos ? haversine(pos, course.location) : null }))
-    .sort((a, b) => (a.meters ?? 0) - (b.meters ?? 0) || a.course.name.localeCompare(b.course.name));
+    .filter(({ course, meters }) => course.source !== 'osm' || q || (meters !== null && meters <= NEARBY_METERS))
+    .sort((a, b) => (a.meters ?? 0) - (b.meters ?? 0) || a.course.name.localeCompare(b.course.name))
+    .slice(0, LIST_LIMIT);
 
   function createCustom(e: FormEvent) {
     e.preventDefault();
@@ -111,13 +109,11 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
   return (
     <section className="course-finder">
       {status === 'locating' && <p className="cf-status">Finding your location…</p>}
-      {status === 'loading' && <p className="cf-status">Looking for nearby courses…</p>}
-      {status === 'denied' && (
-        <p className="cf-status">Location unavailable. Search saved courses or create a custom one.</p>
-      )}
-      {status === 'error' && (
+      {status === 'denied' && <p className="cf-status">Location unavailable. Search courses by name or create a custom one.</p>}
+      {!osm && !dataError && <p className="cf-status">Loading course data…</p>}
+      {dataError && (
         <p className="cf-status cf-error" role="alert">
-          {error}. {osm.length ? 'Showing saved courses.' : ''}
+          Course data unavailable. Connect once to download it; saved and custom courses still work.
         </p>
       )}
 
@@ -128,6 +124,9 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
           <button className="primary" onClick={() => onSelect(here.course)}>
             Start
           </button>
+          <a className="cf-osm" href={osmUrl(here.course.id)} target="_blank" rel="noreferrer">
+            Improve this course on OpenStreetMap
+          </a>
         </div>
       )}
 
@@ -153,7 +152,9 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
             </button>
           </li>
         ))}
-        {!list.length && status === 'ready' && !here && <li className="cf-empty">No courses found within 25 km.</li>}
+        {!list.length && osm && (q || pos) && !here && (
+          <li className="cf-empty">{q ? 'No courses match.' : 'No courses found within 50 km.'}</li>
+        )}
       </ul>
 
       <form className="cf-custom" onSubmit={createCustom}>

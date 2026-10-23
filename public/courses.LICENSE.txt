@@ -1,0 +1,10 @@
+courses.json — worldwide disc golf courses and holes
+
+Data © OpenStreetMap contributors (https://www.openstreetmap.org/copyright).
+This file is a derivative database of OpenStreetMap, made available under the
+Open Database License 1.0 (ODbL): https://opendatacommons.org/licenses/odbl/1-0/
+
+Built by scripts/build-courses.mjs (with src/courses/osm.ts) in
+https://github.com/BlaineHeffron/free-disc-golf — run `npm run build:courses`
+to reproduce it. Any rights in individual contents of the database are licensed
+under the Database Contents License: https://opendatacommons.org/licenses/dbcl/1-0/
