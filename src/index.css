@@ -1,0 +1,5 @@
+:root { font-family: system-ui, sans-serif; color-scheme: light dark; --accent: #2e7d32; }
+body { margin: 0; }
+.app { max-width: 640px; margin: 0 auto; padding: 16px; }
+button { font-size: 1rem; padding: 8px 14px; border-radius: 8px; border: 1px solid #888; cursor: pointer; }
+button.primary { background: var(--accent); color: white; border-color: var(--accent); }
