@@ -35,9 +35,12 @@ const sports = (el: OsmElement) => (el.tags?.sport ?? '').split(';').map((s) => 
 
 const isPrimaryCourse = (el: OsmElement) =>
   el.tags?.leisure === 'disc_golf_course' || (el.type === 'relation' && el.tags?.type === 'disc_golf_course');
-/** `sport=disc_golf` features that look like a whole course: not a hole/tee/basket, and an area or a named point. */
+const NOT_A_COURSE = ['disc_golf', 'golf', 'shop', 'tourism', 'club', 'office', 'building', 'amenity', 'craft'];
+/** `sport=disc_golf` features that look like a whole course: not a hole/tee/basket, shop, club, sign...; an area or a named point. */
 const isSportCourse = (el: OsmElement) =>
-  sports(el).includes('disc_golf') && !el.tags?.disc_golf && !el.tags?.golf && (el.type !== 'node' || !!el.tags?.name);
+  sports(el).includes('disc_golf') &&
+  !NOT_A_COURSE.some((k) => el.tags?.[k]) &&
+  (el.type !== 'node' || /\D/.test(el.tags?.name ?? '0'));
 const isHolePart = (el: OsmElement) =>
   (el.type === 'way' && el.tags?.disc_golf === 'hole') ||
   (el.type === 'node' && (el.tags?.disc_golf === 'tee' || el.tags?.disc_golf === 'basket'));

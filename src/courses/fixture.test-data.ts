@@ -29,8 +29,10 @@ export const osmFixture: OsmElement[] = [
   { type: 'node', id: 5001, lat: 45.8, lon: -122.8, tags: { leisure: 'disc_golf_course', name: 'Backyard Baskets', holes: '9' } },
   { type: 'node', id: 3101, lat: 45.8027, lon: -122.8, tags: { disc_golf: 'basket', ref: '4' } },
   { type: 'node', id: 3102, lat: 45.827, lon: -122.8, tags: { disc_golf: 'basket', ref: '5' } },
-  // Untagged-count course with no holes; a sport=disc_golf pitch elsewhere counts as a course; a lone tee pad does not.
+  // Untagged-count course with no holes; a sport=disc_golf pitch elsewhere counts as a course; a lone tee pad, a shop and a numbered point do not.
   { type: 'node', id: 5002, lat: 46, lon: -123, tags: { leisure: 'disc_golf_course', name: ' Quiet Woods ' } },
   { type: 'way', id: 1003, ...box(47, -123, 47.002, -122.998), tags: { leisure: 'pitch', sport: 'soccer;disc_golf' } },
   { type: 'node', id: 3201, lat: 48, lon: -123, tags: { sport: 'disc_golf', disc_golf: 'tee' } },
+  { type: 'node', id: 6001, lat: 49, lon: -123, tags: { sport: 'disc_golf', shop: 'sports', name: 'Disc Shop' } },
+  { type: 'node', id: 6002, lat: 49.5, lon: -123, tags: { sport: 'disc_golf', name: '8' } }, // a hole number, not a course
 ];

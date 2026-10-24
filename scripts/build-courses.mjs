@@ -7,72 +7,77 @@ import { buildDataset } from '../src/courses/osm.ts';
 
 const OUT = new URL('../public/courses.json', import.meta.url);
 const SERVERS = [
+  'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
 ];
 const UA = 'free-disc-golf-build/1.0 (+https://github.com/BlaineHeffron/free-disc-golf)';
-const TILE = 30; // degrees; a tile too big for one query is split into quarters down to MIN_TILE
-const MIN_TILE = 3.75;
-const RETRIES = 8; // per tile, rotating servers
-const PAUSE_MS = 5_000; // between requests
-const BACKOFF_MS = 30_000; // after any failure (429/406/504/timeout), times the attempt number
+// One request per tag, worldwide: Overpass answers rare-tag queries from its tag index far faster than
+// bbox tiles (~40 s each). A query too big for the server is retried as four bbox quadrants, recursively.
+const STATEMENTS = [
+  'nwr["leisure"="disc_golf_course"]',
+  'nwr["sport"~"disc_golf"]',
+  'relation["type"="disc_golf_course"]',
+  'way["disc_golf"="hole"]',
+  'node["disc_golf"="tee"]',
+  'node["disc_golf"="basket"]',
+];
+const MIN_TILE = 11.25; // degrees of latitude; smallest quadrant
+const RETRIES = 8; // per request, rotating servers
+const PAUSE_MS = 10_000; // between requests
+const BACKOFF_MS = 30_000; // after any failure (429/406/504/timeout), times the attempt number (max 4x)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-const query = ([s, w, n, e]) => {
-  const b = `(${s},${w},${n},${e})`;
-  return `[out:json][timeout:180];(nwr["leisure"="disc_golf_course"]${b};nwr["sport"~"disc_golf"]${b};relation["type"="disc_golf_course"]${b};way["disc_golf"="hole"]${b};node["disc_golf"~"^(tee|basket)$"]${b};);out geom qt;`;
-};
+const WORLD = [-90, -180, 90, 180];
+const query = (stmt, b) => `[out:json][timeout:280];${stmt}${b === WORLD ? '' : `(${b.join(',')})`};out geom qt;`;
 
 let turn = 0;
 async function request(q) {
   const url = SERVERS[turn++ % SERVERS.length];
-  const t0 = Date.now();
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'User-Agent': UA },
       body: new URLSearchParams({ data: q }),
-      signal: AbortSignal.timeout(240_000),
+      signal: AbortSignal.timeout(330_000),
     });
     const text = await res.text();
-    if (!res.ok) return { error: `${url} HTTP ${res.status}`, tooBig: /timed out|out of memory/i.test(text) || Date.now() - t0 > 60_000 };
+    if (!res.ok) return { error: `${url} HTTP ${res.status}`, tooBig: /timed out|out of memory/i.test(text) };
     const json = JSON.parse(text);
     // A remark means a runtime error and therefore a partial result.
     return json.remark ? { error: `${url} ${json.remark}`, tooBig: true } : { elements: json.elements };
   } catch (e) {
-    return { error: `${url} ${e.message}`, tooBig: e.name === 'TimeoutError' };
+    return { error: `${url} ${e.message}` };
   }
 }
 
-/** Busy servers (429/406/504) are retried with backoff; a tile that is too big for one query is split in four. */
-async function tile(b) {
-  const name = b.join(',');
+/** Busy servers (429/406/504, timeouts) are retried with backoff; an area too big for one query is split in four. */
+async function tile(stmt, b = WORLD) {
+  const name = `${stmt} ${b === WORLD ? 'world' : b.join(',')}`;
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
-    const { elements, error, tooBig } = await request(query(b));
+    const { elements, error, tooBig } = await request(query(stmt, b));
     if (elements) {
-      console.log(`tile ${name}: ${elements.length} elements`);
+      console.log(`${name}: ${elements.length} elements`);
       await sleep(PAUSE_MS);
       return elements;
     }
-    console.warn(`tile ${name} attempt ${attempt}/${RETRIES}: ${error}`);
+    console.warn(`${name} attempt ${attempt}/${RETRIES}: ${error}`);
     await sleep(BACKOFF_MS * Math.min(attempt, 4));
     if (tooBig && b[2] - b[0] > MIN_TILE) {
       const [s, w, n, e] = b;
       const [mLat, mLng] = [(s + n) / 2, (w + e) / 2];
       const out = [];
-      for (const q of [[s, w, mLat, mLng], [s, mLng, mLat, e], [mLat, w, n, mLng], [mLat, mLng, n, e]]) out.push(...(await tile(q)));
+      for (const q of [[s, w, mLat, mLng], [s, mLng, mLat, e], [mLat, w, n, mLng], [mLat, mLng, n, e]]) out.push(...(await tile(stmt, q)));
       return out;
     }
   }
-  throw new Error(`tile ${name} failed after ${RETRIES} attempts`);
+  throw new Error(`${name} failed after ${RETRIES} attempts`);
 }
 
 async function fetchAll() {
   const raw = process.env.COURSES_RAW;
   if (raw && existsSync(raw)) return JSON.parse(readFileSync(raw, 'utf8'));
   const elements = [];
-  for (let s = -90; s < 90; s += TILE) for (let w = -180; w < 180; w += TILE) elements.push(...(await tile([s, w, s + TILE, w + TILE])));
+  for (const stmt of STATEMENTS) elements.push(...(await tile(stmt)));
   if (raw) writeFileSync(raw, JSON.stringify(elements));
   return elements;
 }
@@ -85,7 +90,7 @@ try {
   writeFileSync(OUT, body);
   const detailed = rows.filter((r) => typeof r[4] !== 'number');
   const holes = detailed.reduce((n, r) => n + r[4].length, 0);
-  const mapped = detailed.reduce((n, r) => n + (Array.isArray(r[4]) ? r[4].filter((h) => h.length === 6 && h[2] !== null).length : 0), 0);
+  const mapped = detailed.reduce((n, r) => n + r[4].filter((h) => h.length === 6 && h[2] !== null).length, 0);
   console.log(`courses ${rows.length}, with hole data ${detailed.length}, holes ${holes} (${mapped} with tee+basket)`);
   console.log(`bytes ${Buffer.byteLength(body)} raw, ${gzipSync(body).length} gzip`);
 } catch (e) {
