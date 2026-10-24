@@ -30,9 +30,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const WORLD = [-90, -180, 90, 180];
 const query = (stmt, b) => `[out:json][timeout:280];${stmt}${b === WORLD ? '' : `(${b.join(',')})`};out geom qt;`;
 
-let turn = 0;
-async function request(q) {
-  const url = SERVERS[turn++ % SERVERS.length];
+const MAX_AGE_MS = 2 * 86_400_000; // mirrors can lag or hold a partial database
+async function request(q, attempt) {
+  const url = SERVERS[(attempt - 1) % SERVERS.length]; // main server first, mirrors as fallback
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -44,7 +44,10 @@ async function request(q) {
     if (!res.ok) return { error: `${url} HTTP ${res.status}`, tooBig: /timed out|out of memory/i.test(text) };
     const json = JSON.parse(text);
     // A remark means a runtime error and therefore a partial result.
-    return json.remark ? { error: `${url} ${json.remark}`, tooBig: true } : { elements: json.elements };
+    if (json.remark) return { error: `${url} ${json.remark}`, tooBig: true };
+    const base = json.osm3s?.timestamp_osm_base;
+    if (!(Date.now() - Date.parse(base) < MAX_AGE_MS)) return { error: `${url} stale data (${base})` };
+    return { elements: json.elements, source: `${url} @ ${base}` };
   } catch (e) {
     return { error: `${url} ${e.message}` };
   }
@@ -54,9 +57,9 @@ async function request(q) {
 async function tile(stmt, b = WORLD) {
   const name = `${stmt} ${b === WORLD ? 'world' : b.join(',')}`;
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
-    const { elements, error, tooBig } = await request(query(stmt, b));
+    const { elements, error, tooBig, source } = await request(query(stmt, b), attempt);
     if (elements) {
-      console.log(`${name}: ${elements.length} elements`);
+      console.log(`${name}: ${elements.length} elements from ${source}`);
       await sleep(PAUSE_MS);
       return elements;
     }
@@ -84,8 +87,11 @@ async function fetchAll() {
 
 try {
   const rows = buildDataset(await fetchAll());
-  const previous = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')).courses.length : 0;
-  if (rows.length < previous * 0.9) throw new Error(`only ${rows.length} courses (previously ${previous}); refusing to overwrite`);
+  // Weekly OSM changes are small; a big drop means a server returned incomplete data.
+  const holeCount = (rs) => rs.reduce((n, r) => n + (typeof r[4] === 'number' ? 0 : r[4].length), 0);
+  const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')).courses : [];
+  if (rows.length < prev.length * 0.95 || holeCount(rows) < holeCount(prev) * 0.95)
+    throw new Error(`${rows.length} courses / ${holeCount(rows)} holes vs ${prev.length} / ${holeCount(prev)} before; refusing to overwrite`);
   const body = `{"format":1,"license":"ODbL-1.0","attribution":"© OpenStreetMap contributors","source":"https://www.openstreetmap.org/copyright","courses":[\n${rows.map((r) => JSON.stringify(r)).join(',\n')}\n]}\n`;
   writeFileSync(OUT, body);
   const detailed = rows.filter((r) => typeof r[4] !== 'number');
