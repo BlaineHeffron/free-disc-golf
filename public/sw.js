@@ -3,7 +3,7 @@
 const CACHE = 'disc-golf-v2';
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/courses.json'])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './courses.json'])));
 });
 self.addEventListener('activate', (e) =>
   e.waitUntil(
@@ -23,6 +23,6 @@ self.addEventListener('fetch', (e) => {
         caches.open(CACHE).then((c) => c.put(e.request, copy));
         return res;
       })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match('/'))),
+      .catch(() => caches.match(e.request).then((r) => r || caches.match('./'))),
   );
 });

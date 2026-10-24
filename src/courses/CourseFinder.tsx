@@ -42,7 +42,7 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
   useEffect(() => {
     let live = true;
     // Bundled OpenStreetMap dataset (public/courses.json); the service worker keeps it for offline use.
-    fetch('/courses.json')
+    fetch(`${import.meta.env.BASE_URL}courses.json`)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
       .then(
         (data: { courses: CourseRow[] }) => live && setOsm(data.courses.map(decodeCourse)),
