@@ -53,9 +53,10 @@ Import one from the course screen (**Import course layout**).
 `public/courses.json` is built from OpenStreetMap by `scripts/build-courses.mjs`
 (pure logic in `src/courses/osm.ts`, unit-tested) and rebuilt weekly by
 `.github/workflows/build-courses.yml`, which commits it only when it changed.
-Rebuild locally with `npm run build:courses` (Node ≥ 22.6; takes a while — it
-queries public Overpass servers tile by tile, politely, with backoff). If any tile
-fails the script exits non-zero and leaves the existing file untouched.
+Rebuild locally with `npm run build:courses` (Node ≥ 22.6; ~15 min — one
+worldwide query per tag against public Overpass servers, with pauses, backoff and
+server rotation; a query too big for a server is split into map quadrants). If any
+request still fails the script exits non-zero and leaves the existing file untouched.
 
 What is included:
 - courses: `leisure=disc_golf_course`, `type=disc_golf_course` relations, and
