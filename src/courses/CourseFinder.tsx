@@ -25,7 +25,7 @@ function save(key: string, courses: Course[]) {
   }
 }
 
-type Status = 'locating' | 'ready' | 'denied';
+type Status = 'locating' | 'ready' | 'blocked' | 'off' | 'unsupported';
 
 export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void }) {
   const [osm, setOsm] = useState<Course[] | null>(null);
@@ -38,6 +38,7 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
   const [newName, setNewName] = useState('');
   const [newHoles, setNewHoles] = useState(18);
   const [importError, setImportError] = useState('');
+  const [locateTry, setLocateTry] = useState(0);
 
   useEffect(() => {
     let live = true;
@@ -48,23 +49,29 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
         (data: { courses: CourseRow[] }) => live && setOsm(data.courses.map(decodeCourse)),
         () => live && setDataError(true),
       );
-    if (!navigator.geolocation) {
-      setStatus('denied');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        if (!live) return;
-        setPos({ lat: coords.latitude, lng: coords.longitude });
-        setStatus('ready');
-      },
-      () => live && setStatus('denied'),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-    );
     return () => {
       live = false;
     };
   }, []);
+
+  // Watch rather than one-shot: a GPS fix can take well over 15 s, and the position follows you onto a course.
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setStatus('unsupported');
+      return;
+    }
+    setStatus((s) => (s === 'ready' ? s : 'locating'));
+    const id = navigator.geolocation.watchPosition(
+      ({ coords }) => {
+        setPos({ lat: coords.latitude, lng: coords.longitude });
+        setStatus('ready');
+      },
+      // 1 = permission denied, 2 = position unavailable, 3 = timeout (keep waiting)
+      (err) => err.code !== 3 && setStatus(err.code === 1 ? 'blocked' : 'off'),
+      { enableHighAccuracy: true, maximumAge: 60000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [locateTry]);
 
   const all = useMemo(() => [...layouts, ...custom, ...(osm ?? [])], [layouts, custom, osm]);
   const here = pos && osm ? recognize(osm, pos) : null;
@@ -109,7 +116,21 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
   return (
     <section className="course-finder">
       {status === 'locating' && <p className="cf-status">Finding your location…</p>}
-      {status === 'denied' && <p className="cf-status">Location unavailable. Search courses by name or create a custom one.</p>}
+      {(status === 'blocked' || status === 'off' || status === 'unsupported') && (
+        <p className="cf-status">
+          {status === 'blocked'
+            ? 'Location is blocked for this site. In Chrome, tap the icon left of the address, allow Location, then retry.'
+            : status === 'off'
+              ? "Can't get your location. Check that location is turned on for your phone and for Chrome, then retry."
+              : 'This browser has no location support.'}{' '}
+          {status !== 'unsupported' && (
+            <button type="button" onClick={() => setLocateTry((n) => n + 1)}>
+              Retry location
+            </button>
+          )}{' '}
+          You can still search by name or create a custom course.
+        </p>
+      )}
       {!osm && !dataError && <p className="cf-status">Loading course data…</p>}
       {dataError && (
         <p className="cf-status cf-error" role="alert">

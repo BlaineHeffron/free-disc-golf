@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { CourseFinder } from './CourseFinder';
 import type { CourseRow } from './osm';
 
@@ -12,8 +12,14 @@ const dataset: { courses: CourseRow[] } = {
 };
 
 function stubGeolocation(lat: number, lng: number) {
+  stubWatch((ok) => ok({ coords: { latitude: lat, longitude: lng } } as GeolocationPosition));
+}
+
+/** navigator.geolocation whose watchPosition hands its callbacks to `onWatch`, once per watch started. */
+function stubWatch(onWatch: (ok: PositionCallback, fail: PositionErrorCallback) => void) {
   const geolocation = {
-    getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: lat, longitude: lng } } as GeolocationPosition),
+    watchPosition: (ok: PositionCallback, fail: PositionErrorCallback) => (onWatch(ok, fail), 1),
+    clearWatch: () => {},
   };
   Object.defineProperty(navigator, 'geolocation', { value: geolocation, configurable: true });
 }
@@ -54,7 +60,7 @@ describe('CourseFinder', () => {
     Object.defineProperty(navigator, 'geolocation', { value: undefined, configurable: true });
     vi.stubGlobal('fetch', async () => new Response(JSON.stringify(dataset)));
     render(<CourseFinder onSelect={vi.fn()} />);
-    expect(await screen.findByText(/Location unavailable/)).toBeInTheDocument();
+    expect(await screen.findByText(/no location support/)).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText('Loading course data…')).not.toBeInTheDocument());
     expect(screen.queryByText('Faraway Woods')).not.toBeInTheDocument();
 
@@ -72,19 +78,36 @@ describe('CourseFinder', () => {
   });
 
   it('falls back to a custom course when location is denied', () => {
-    Object.defineProperty(navigator, 'geolocation', {
-      value: { getCurrentPosition: (_: PositionCallback, fail: PositionErrorCallback) => fail({ code: 1 } as GeolocationPositionError) },
-      configurable: true,
-    });
+    stubWatch((_, fail) => fail({ code: 1 } as GeolocationPositionError));
     vi.stubGlobal('fetch', async () => new Response(JSON.stringify(dataset)));
     const onSelect = vi.fn();
     render(<CourseFinder onSelect={onSelect} />);
-    expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
+    expect(screen.getByText(/Location is blocked/)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Course name'), { target: { value: 'Back Field' } });
     fireEvent.change(screen.getByLabelText('Hole count'), { target: { value: '9' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create & start' }));
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ name: 'Back Field', source: 'custom', holes: expect.any(Array) }));
     expect(onSelect.mock.calls[0][0].holes).toHaveLength(9);
+  });
+
+  it('keeps waiting through a slow GPS fix, and retries after a failure', async () => {
+    let watch: { ok: PositionCallback; fail: PositionErrorCallback } | undefined;
+    stubWatch((ok, fail) => (watch = { ok, fail }));
+    vi.stubGlobal('fetch', async () => new Response(JSON.stringify(dataset)));
+    render(<CourseFinder onSelect={vi.fn()} />);
+
+    act(() => watch!.fail({ code: 3 } as GeolocationPositionError)); // timeout: still searching
+    expect(screen.getByText('Finding your location…')).toBeInTheDocument();
+
+    act(() => watch!.fail({ code: 2 } as GeolocationPositionError)); // location off
+    expect(screen.getByText(/Can't get your location/)).toBeInTheDocument();
+    const first = watch;
+    fireEvent.click(screen.getByRole('button', { name: 'Retry location' }));
+    expect(watch).not.toBe(first);
+    expect(screen.getByText('Finding your location…')).toBeInTheDocument();
+
+    act(() => watch!.ok({ coords: { latitude: 45.5, longitude: -122.6 } } as GeolocationPosition));
+    expect(await screen.findByText(/You're at Pier Park DGC/)).toBeInTheDocument();
   });
 });
