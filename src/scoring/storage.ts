@@ -1,4 +1,5 @@
 import type { Round } from '../types';
+import { persist } from '../persist';
 
 /*
  Compact round storage: one localStorage key, `dg`, holding newline-separated text.
@@ -87,7 +88,9 @@ export function listRounds(): Round[] {
 
 export function saveRound(round: Round) {
   try {
-    localStorage.setItem(KEY, encodeRounds([round, ...listRounds().filter((r) => r.id !== round.id)]));
+    const value = encodeRounds([round, ...listRounds().filter((r) => r.id !== round.id)]);
+    localStorage.setItem(KEY, value);
+    persist(KEY, value);
     LEGACY.forEach((k) => localStorage.removeItem(k));
   } catch {
     // storage unavailable or full: the app keeps working in memory

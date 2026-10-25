@@ -87,6 +87,16 @@ The dataset is © OpenStreetMap contributors and offered under the
 `public/courses.LICENSE.txt`. Fix or add holes on OpenStreetMap (the app links to
 each course) and the next weekly build picks it up.
 
+## Android app
+Download the latest `.apk` from [Releases](https://github.com/BlaineHeffron/free-disc-golf/releases) on your
+phone and open it (allow installs from your browser when asked). Rounds are stored in the app's own storage,
+which Android's automatic Google backup restores when you reinstall or move to a new phone. The app uses the
+weekly course data when online and its bundled copy offline.
+
+Release: push a tag (`git tag v0.2.0 && git push origin v0.2.0`); `.github/workflows/android.yml` builds the
+signed APK and publishes the release. The signing key lives outside the repo (GitHub secrets
+`ANDROID_KEYSTORE_B64` / `ANDROID_KEYSTORE_PASSWORD`); keep a backup, since updates must be signed with the same key.
+
 ## Develop
 ```
 npm install

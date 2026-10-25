@@ -3,8 +3,10 @@ import type { Course, LatLng } from '../types';
 import { formatDistance, haversine, recognize } from './geo';
 import { decodeCourse, osmUrl, type CourseRow } from './osm';
 import { LayoutError, readLayoutFile } from './layout';
+import { isNative, persist } from '../persist';
 import './courses.css';
 
+const REMOTE_COURSES = 'https://blaineheffron.github.io/free-disc-golf/courses.json';
 const NEARBY_METERS = 50000;
 const LIST_LIMIT = 50;
 const CUSTOM_KEY = 'dg.courses.custom';
@@ -20,6 +22,7 @@ function load(key: string): Course[] {
 function save(key: string, courses: Course[]) {
   try {
     localStorage.setItem(key, JSON.stringify(courses));
+    persist(key, JSON.stringify(courses));
   } catch {
     /* storage unavailable: keep working in memory */
   }
@@ -43,8 +46,10 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
   useEffect(() => {
     let live = true;
     // Bundled OpenStreetMap dataset (public/courses.json); the service worker keeps it for offline use.
-    fetch(`${import.meta.env.BASE_URL}courses.json`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+    const getJson = (url: string) => fetch(url).then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))));
+    const bundled = `${import.meta.env.BASE_URL}courses.json`;
+    // The Android app ships a copy; it prefers the weekly-rebuilt file online and falls back to that copy offline.
+    (isNative ? getJson(REMOTE_COURSES).catch(() => getJson(bundled)) : getJson(bundled))
       .then(
         (data: { courses: CourseRow[] }) => live && setOsm(data.courses.map(decodeCourse)),
         () => live && setDataError(true),

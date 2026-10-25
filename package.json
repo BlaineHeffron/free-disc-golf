@@ -13,10 +13,14 @@
     "build:courses": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/build-courses.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "7.6.9",
+    "@capacitor/core": "7.6.9",
+    "@capacitor/preferences": "7.0.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "7.6.9",
     "@eslint/js": "^9.25.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
