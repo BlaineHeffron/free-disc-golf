@@ -3238,5 +3238,17 @@
 ["w1569120178","",51.41013,7.16777,18],
 ["w1570026426","Hub Park Disc Golf Course",40.11632,-87.26822,18],
 ["w1571008892","Hidden Valley Disc Golf Course",39.16819,-94.50603,[[1,3,39.16769,-94.5057,39.16726,-94.50636],[2,3,39.16671,-94.50687,39.16736,-94.50666],[3,3,39.16715,-94.50693,39.1679,-94.5068],[4,3,39.16826,-94.50729,39.16872,-94.50639],[5,3,39.16892,-94.50628,39.16968,-94.50677],[6,3,39.16959,-94.50655,39.16947,-94.50592],[7,3,39.16935,-94.50585,39.16852,-94.50497],[8,3,39.16821,-94.50495,39.16766,-94.5049],[9,3,39.16715,-94.50478,39.16769,-94.50549]]],
-["w1571196801","",42.15889,-123.65417,18]
+["w1571196801","",42.15889,-123.65417,18],
+["xchs-brown-family-park","Brown Family Park Disc Golf",33.04267,-80.14385,18],
+["xchs-fire-swamp","Fire Swamp Disc Golf Course",32.82043,-80.05721,18],
+["xchs-johns-island-park","Johns Island Park Disc Golf",32.72287,-80.08446,18],
+["xchs-marshside","Marshside Disc Golf Course",32.73481,-79.98955,18],
+["xchs-northwoods","Northwoods Park Disc Golf Course",32.9571,-80.0591,9],
+["xchs-old-grove","Old Grove Disc Golf Course",32.6397,-80.1223,18],
+["xchs-park-circle","Park Circle Disc Golf",32.88141,-79.98522,18],
+["xchs-pine-trace","Pine Trace Park Disc Golf Course",32.98047,-80.15646,18],
+["xchs-sangaree","Sangaree Disc Golf Course",33.0303,-80.12138,9],
+["xchs-sewee-outpost","Sewee Outpost Disc Golf",32.92799,-79.71429,18],
+["xchs-trophy-lakes","Trophy Lakes Disc Golf",32.74063,-80.05483,18],
+["xchs-wannamaker","Wannamaker County Park Disc Golf Course",32.97836,-80.05246,18]
 ]}

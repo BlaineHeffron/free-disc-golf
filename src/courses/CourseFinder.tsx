@@ -145,7 +145,7 @@ export function CourseFinder({ onSelect }: { onSelect: (course: Course) => void 
           <button className="primary" onClick={() => onSelect(here.course)}>
             Start
           </button>
-          <a className="cf-osm" href={osmUrl(here.course.id)} target="_blank" rel="noreferrer">
+          <a className="cf-osm" href={osmUrl(here.course)} target="_blank" rel="noreferrer">
             Improve this course on OpenStreetMap
           </a>
         </div>

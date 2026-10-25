@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDataset, decodeCourse, osmUrl } from './osm';
+import { buildDataset, decodeCourse, osmUrl, withExtras, type CourseRow } from './osm';
 import { osmFixture } from './fixture.test-data';
 
 describe('buildDataset', () => {
@@ -58,6 +58,28 @@ describe('decodeCourse', () => {
   });
 
   it('links to the course on openstreetmap.org', () => {
-    expect(osmUrl('osm:way/1001')).toBe('https://www.openstreetmap.org/way/1001');
+    expect(osmUrl(decodeCourse(['w1001', 'X', 45.5, -122.6, 18]))).toBe('https://www.openstreetmap.org/way/1001');
+  });
+});
+
+describe('withExtras', () => {
+  const osmRows: CourseRow[] = [['n1', 'Mapped', 32.0, -80.0, 18]];
+  const extras = [
+    { id: 'xnear', name: 'Near mapped', lat: 32.005, lng: -80.0, holes: 9 }, // ~550 m from a mapped course
+    { id: 'xfar', name: 'Unmapped', lat: 32.1, lng: -80.0, holes: 9 },
+  ];
+
+  it('adds curated courses unless OSM already has a course within 1 km', () => {
+    const rows = withExtras(osmRows, extras);
+    expect(rows.map((r) => r[0])).toEqual(['n1', 'xfar']);
+    // Re-merging is idempotent: old extras are replaced, not duplicated.
+    expect(withExtras(rows, extras)).toEqual(rows);
+  });
+
+  it('decodes curated courses as local ids that link to the OSM editor', () => {
+    const course = decodeCourse(withExtras(osmRows, extras)[1]);
+    expect(course).toMatchObject({ id: 'local:far', name: 'Unmapped', source: 'osm' });
+    expect(course.holes).toHaveLength(9);
+    expect(osmUrl(course)).toBe('https://www.openstreetmap.org/edit#map=18/32.1/-80');
   });
 });

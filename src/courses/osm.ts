@@ -166,8 +166,27 @@ export function decodeCourse([id, name, lat, lng, h]: CourseRow): Course {
             if (tee && basket) hole.lengthMeters = Math.round(haversine(tee, basket));
             return hole;
           });
-  return { id: `osm:${TYPES[id[0]]}/${id.slice(1)}`, name: name || 'Unnamed course', location: { lat, lng }, holes, source: 'osm' };
+  const courseId = id[0] === 'x' ? `local:${id.slice(1)}` : `osm:${TYPES[id[0]]}/${id.slice(1)}`;
+  return { id: courseId, name: name || 'Unnamed course', location: { lat, lng }, holes, source: 'osm' };
 }
 
-/** "osm:way/123" -> its openstreetmap.org page. */
-export const osmUrl = (courseId: string) => `https://www.openstreetmap.org/${courseId.slice(4)}`;
+/** An OSM course's openstreetmap.org page, or the OSM editor at a course that isn't mapped yet. */
+export const osmUrl = ({ id, location }: Course) =>
+  id.startsWith('osm:')
+    ? `https://www.openstreetmap.org/${id.slice(4)}`
+    : `https://www.openstreetmap.org/edit#map=18/${location.lat}/${location.lng}`;
+
+export interface ExtraCourse {
+  id: string; // "x" + slug
+  name: string;
+  lat: number;
+  lng: number;
+  holes: number;
+}
+
+/** Hand-curated courses missing from OSM (data/extra-courses.json); each drops out once OSM maps a course within 1 km. */
+export function withExtras(rows: CourseRow[], extras: ExtraCourse[]): CourseRow[] {
+  const osm = rows.filter((r) => r[0][0] !== 'x');
+  const missing = extras.filter((x) => !osm.some((r) => haversine({ lat: r[2], lng: r[3] }, x) < ASSIGN_METERS));
+  return [...osm, ...missing.map((x): CourseRow => [x.id, x.name, x.lat, x.lng, x.holes])];
+}

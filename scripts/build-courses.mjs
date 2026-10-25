@@ -1,9 +1,10 @@
 // Builds public/courses.json (worldwide disc golf courses + holes) from OpenStreetMap via Overpass.
-// Usage: npm run build:courses   (COURSES_RAW=file caches the raw Overpass elements for re-runs)
+// Usage: npm run build:courses   (COURSES_RAW=file caches the raw Overpass elements for re-runs;
+//        -- --extras-only merges data/extra-courses.json into the existing file, no download)
 // Data © OpenStreetMap contributors, ODbL 1.0. Format: see README "Course data".
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
-import { buildDataset } from '../src/courses/osm.ts';
+import { buildDataset, withExtras } from '../src/courses/osm.ts';
 
 const OUT = new URL('../public/courses.json', import.meta.url);
 const SERVERS = [
@@ -86,7 +87,10 @@ async function fetchAll() {
 }
 
 try {
-  const rows = buildDataset(await fetchAll());
+  const extras = JSON.parse(readFileSync(new URL('../data/extra-courses.json', import.meta.url), 'utf8'));
+  // --extras-only re-merges data/extra-courses.json into the existing file without querying Overpass.
+  const base = process.argv.includes('--extras-only') ? JSON.parse(readFileSync(OUT, 'utf8')).courses : buildDataset(await fetchAll());
+  const rows = withExtras(base, extras);
   // Weekly OSM changes are small; a big drop means a server returned incomplete data.
   const holeCount = (rs) => rs.reduce((n, r) => n + (typeof r[4] === 'number' ? 0 : r[4].length), 0);
   const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')).courses : [];

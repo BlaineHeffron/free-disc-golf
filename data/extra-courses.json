@@ -1,0 +1,171 @@
+[
+ {
+  "id": "xchs-brown-family-park",
+  "name": "Brown Family Park Disc Golf",
+  "lat": 33.04267,
+  "lng": -80.14385,
+  "holes": 18,
+  "holesKnown": false,
+  "access": "public (Town of Summerville park, dawn to dusk)",
+  "locationNote": "Berkeley Observer (Mar 2026): new course opened, built by Summerville Parks & Rec with a $10k Berkeley County PARD grant. Hole count is not in official or news sources (UDisc calls it an 'aceplace', s",
+  "sources": [
+   "https://www.berkeleyobserver.com/2026/03/06/new-disc-golf-course-opens-at-brown-family-park-in-nexton/",
+   "https://www.summervillesc.gov/facilities/facility/details/Brown-Family-Park-8"
+  ]
+ },
+ {
+  "id": "xchs-fire-swamp",
+  "name": "Fire Swamp Disc Golf Course",
+  "lat": 32.82043,
+  "lng": -80.05721,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "public/free (City of Charleston park, dawn to dusk); 'free' is inferred, not stated by an official source",
+  "locationNote": "P&C 2024: 18 holes, run by the City of Charleston. City Paper in 2008-09 called it 'Tidal Creek at Ashley Park', free. UDisc shows 20 holes (proprietary, not used). No official city page found.",
+  "sources": [
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html",
+   "https://charlestoncitypaper.com/?p=27621"
+  ]
+ },
+ {
+  "id": "xchs-johns-island-park",
+  "name": "Johns Island Park Disc Golf",
+  "lat": 32.72287,
+  "lng": -80.08446,
+  "holes": 18,
+  "holesKnown": false,
+  "access": "public (city neighborhood park)",
+  "locationNote": "The City of Charleston facility page lists 'Disc Golf' as a feature but gives no hole count (UDisc says 9, proprietary). The park is not mapped in OSM; the coordinate is Nominatim's 1727 Bozo Ln addre",
+  "sources": [
+   "https://www.charleston-sc.gov/facilities/facility/details/johnsislandpark-66"
+  ]
+ },
+ {
+  "id": "xchs-marshside",
+  "name": "Marshside Disc Golf Course",
+  "lat": 32.73481,
+  "lng": -79.98955,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "fee: free with regular park admission (CCPRC park entry fee); course hours Mar-Oct 9am-7pm, Nov-Feb 9am-5pm",
+  "locationNote": "Name, 18 holes, 'free with regular park admission' and hours read directly from the CCPRC page. Lat/lng is the park polygon center; the course is in the Outdoor Adventure Center area, so it needs a be",
+  "sources": [
+   "https://www.ccprc.com/parks/parks-trails/james-island-county-park/outdoor-adventure-center/",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-northwoods",
+  "name": "Northwoods Park Disc Golf Course",
+  "lat": 32.9571,
+  "lng": -80.0591,
+  "holes": 9,
+  "holesKnown": true,
+  "access": "public (city park); free per proprietary sources only",
+  "locationNote": "P&C 2024: 'fairly new 9-hole course'. No City of North Charleston page found. Nearest OSM disc golf is 4 km away.",
+  "sources": [
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-old-grove",
+  "name": "Old Grove Disc Golf Course",
+  "lat": 32.6397,
+  "lng": -80.1223,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "fee: CCPRC county park (park entry fee assumed, not verified)",
+  "locationNote": "Official CCPRC map: 18 holes, short and long tees. P&C (June 2024) said 9 holes; it was rebuilt or expanded to 18 and opened Aug 2025 (Disc Golf Design Group). The park is NOT mapped in OSM. The coord",
+  "sources": [
+   "https://assets.simpleviewinc.com/sv-charleston/image/upload/v1/cms_resources/clients/charlestoncountysc/Old_Grove_Disc_Golf_Course_Map_PDF__bc6668a6-baad-49aa-89f5-23e4c721db41.pdf",
+   "https://www.discgolfdesigngroup.com/news/the-old-grove-disc-golf-course-in-charleston-sc/",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-park-circle",
+  "name": "Park Circle Disc Golf",
+  "lat": 32.88141,
+  "lng": -79.98522,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "public/free",
+  "locationNote": "ALREADY PARTLY IN OSM: 18 disc_golf=hole ways (way/1447295150-1447295167) plus tees and baskets are mapped around the circle. There is no leisure=disc_golf_course feature, which is probably why the da",
+  "sources": [
+   "https://www.visitnorthcharleston.com/place/things-to-do/disc-golf/",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-pine-trace",
+  "name": "Pine Trace Park Disc Golf Course",
+  "lat": 32.98047,
+  "lng": -80.15646,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "fee: $2 park admission (age 3+), $42 annual county-resident pass",
+  "locationNote": "Live5 (Aug 2025): 'Dorchester County's first disc golf course', $2 admission. The 18 holes, Innova design and dawn-to-dusk hours come from the Charleston Magazine article as summarized by search; I di",
+  "sources": [
+   "https://features.charlestonmag.com/?p=18909",
+   "https://www.live5news.com/2025/08/14/new-300-acre-park-opening-dorchester-county",
+   "https://www.postandcourier.com/news/next-dorchester-county-park-is-over-300-acres-includes-kayaks-dog-parks-and-disc-golf/article_b1631624-bc37-11ed-ae82-33ea1dd1ca1d.html"
+  ]
+ },
+ {
+  "id": "xchs-sangaree",
+  "name": "Sangaree Disc Golf Course",
+  "lat": 33.0303,
+  "lng": -80.12138,
+  "holes": 9,
+  "holesKnown": true,
+  "access": "public (Berkeley County park, dawn to dusk); free inferred",
+  "locationNote": "sangaree.us lists a '9 Hole Disc Golf Course' at Sangaree Park, open dawn to dusk. Sangaree Park itself is NOT mapped in OSM; the OSM element given is the adjacent library building, so the coordinate ",
+  "sources": [
+   "https://sangaree.us/parks-and-rec/",
+   "https://berkeleycountysc.gov/wp-content/uploads/docs/SSTD2308.pdf"
+  ]
+ },
+ {
+  "id": "xchs-sewee-outpost",
+  "name": "Sewee Outpost Disc Golf",
+  "lat": 32.92799,
+  "lng": -79.71429,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "private: $5+ non-fuel store purchase gets a day wristband",
+  "locationNote": "P&C 2024: private 18-hole course. The OSM element is the 4853 US-17 address/building from Nominatim (a second address way, way/294240288, also matches). The store isn't mapped as a shop.",
+  "sources": [
+   "https://www.seweeoutpost.com/disc-golf-1",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-trophy-lakes",
+  "name": "Trophy Lakes Disc Golf",
+  "lat": 32.74063,
+  "lng": -80.05483,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "fee: $8 day pass; locals membership $4/day or $35/yr; sunrise to sunset",
+  "locationNote": "The owner site lists 18 holes with 35 concrete tees. The property isn't mapped in OSM; the coordinate is the Marlin Road centroid (way/12156593) from Nominatim, not the course.",
+  "sources": [
+   "https://www.trophylakesports.com/activities/disc-golf/",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ },
+ {
+  "id": "xchs-wannamaker",
+  "name": "Wannamaker County Park Disc Golf Course",
+  "lat": 32.97836,
+  "lng": -80.05246,
+  "holes": 18,
+  "holesKnown": true,
+  "access": "fee: park entry fee (CCPRC); disc rentals $5",
+  "locationNote": "Official 2023 CCPRC map: 18 holes, par 57, 4,638 ft. The park page lists an 'Eighteen-hole disc golf course'. Nearest OSM disc golf feature is 5.5 km away.",
+  "sources": [
+   "https://www.ccprc.com/parks/parks-trails/wannamaker-county-park/",
+   "https://assets.simpleviewinc.com/sv-charleston/image/upload/v1/cms_resources/clients/charlestoncountysc/Wannamaker_County_Park_Disc_Golf_Map_PDF_2023_f75de855-a897-43af-ae70-d5e49f5507b3.pdf",
+   "https://www.postandcourier.com/lowcountryparent/sports/as-disc-golf-popularity-soars-where-can-you-play-in-the-lowcountry/article_7a6d6c52-2a6b-11ef-bdf1-9fd470cfb160.html"
+  ]
+ }
+]
